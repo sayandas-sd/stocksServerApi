@@ -20,7 +20,7 @@ func Connection() *sql.DB {
 	err := godotenv.Load(".env")
 
 	if err != nil {
-		log.Fatal("Error is happening in database ")
+		log.Fatal("Error is happening in database")
 	}
 
 	db, err := sql.Open("postgres", os.Getenv("DATABASE_URL"))
