@@ -48,7 +48,7 @@ func CreateStock(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&stock)
 
 	if err != nil {
-		log.Fatal("unable to decode from body %v", err)
+		log.Fatalf("unable to decode from body %v", err)
 	}
 
 	insertID := insertStock(stock)
@@ -69,7 +69,7 @@ func GetStock(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(params["id"])
 
 	if err != nil {
-		log.Fatal("Unable to parse the string %v", err)
+		log.Fatalf("Unable to parse the string %v", err)
 	}
 
 	stock, err := getStock(int64(id))
@@ -85,7 +85,7 @@ func GetAllStock(w http.ResponseWriter, r *http.Request) {
 	stocks, err := getAllStocks()
 
 	if err != nil {
-		log.Fatal("Unable to get all stocks %v", err)
+		log.Fatalf("Unable to get all stocks %v", err)
 	}
 
 	json.NewEncoder(w).Encode(stocks)
@@ -160,7 +160,7 @@ func insertStock(stock model.Stock) int64 {
 		log.Fatalf("Unable to execute the query %v", err)
 	}
 
-	fmt.Println("Inserted a single record %v", id)
+	fmt.Printf("Inserted a single record %v", id)
 
 	return id
 }
@@ -226,9 +226,51 @@ func getAllStocks() ([]model.Stock, error) {
 }
 
 func updateStock(id int64, stock model.Stock) int64 {
+	db := connection()
+
+	defer db.Close()
+
+	sqlQuery := `UPDATE stocks SET name=$2, price=$3, company=$4 WHERE stockid=$1`
+
+	res, err := db.Exec(sqlQuery, stock.Name, stock.Price, stock.Company, stock.StockId)
+
+	if err != nil {
+		log.Fatalf("unable to execute the query %v", err)
+	}
+
+	rows, err := res.RowsAffected()
+
+	if err != nil {
+		log.Fatalf("an error occured %v", err)
+	}
+
+	fmt.Printf("Total rows are: %v", rows)
+
+	return rows
 
 }
 
 func deleteStock(id int64) int64 {
+	db := connection()
+
+	defer db.Close()
+
+	sqlQuery := `DELETE FROM stocks WHERE stockid=$1`
+
+	res, err := db.Exec(sqlQuery, id)
+
+	if err != nil {
+		log.Fatalf("Unable to execute the query %v", err)
+	}
+
+	rows, err := res.RowsAffected()
+
+	if err != nil {
+		log.Fatalf("an error occured %v", err)
+	}
+
+	fmt.Printf("Total rows effected %v", rows)
+
+	return rows
 
 }
